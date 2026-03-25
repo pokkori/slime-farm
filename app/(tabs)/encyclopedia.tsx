@@ -103,9 +103,9 @@ export default function EncyclopediaScreen() {
               <Text style={[styles.modalRarity, { color: RARITY_COLORS[selectedMaster.rarity] }]}>
                 {'\u2605'.repeat(selectedMaster.tier)} {selectedMaster.rarity}
               </Text>
-              <Text style={styles.modalStat}>&#x1F4B0; {selectedMaster.coinsPerMinute} coin/min</Text>
+              <Text style={styles.modalStat}>コイン/分: {selectedMaster.coinsPerMinute}</Text>
               {selectedMaster.ability !== 'none' && (
-                <Text style={styles.modalAbility}>&#x2728; {selectedMaster.ability}</Text>
+                <Text style={styles.modalAbility}>特殊能力: {selectedMaster.ability}</Text>
               )}
               <Text style={styles.modalDesc}>{selectedMaster.description}</Text>
               <Text style={styles.modalMergeCount}>合成回数: {selectedEntry.mergeCount}</Text>

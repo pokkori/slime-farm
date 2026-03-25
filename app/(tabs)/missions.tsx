@@ -41,7 +41,7 @@ export default function MissionsScreen() {
           onPress={() => setTab('daily')}
         >
           <Text style={[styles.segmentText, tab === 'daily' && styles.segmentTextActive]}>
-            &#x1F4CB; デイリー
+            デイリー
           </Text>
         </Pressable>
         <Pressable
@@ -49,14 +49,14 @@ export default function MissionsScreen() {
           onPress={() => setTab('achievements')}
         >
           <Text style={[styles.segmentText, tab === 'achievements' && styles.segmentTextActive]}>
-            &#x1F3C6; 実績
+            実績
           </Text>
         </Pressable>
       </View>
 
       {tab === 'daily' ? (
         <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
-          <Text style={styles.resetText}>&#x23F0; リセットまで: {countdown}</Text>
+          <Text style={styles.resetText}>リセットまで: {countdown}</Text>
 
           {dailyMissions.map(mission => (
             <MissionCard
@@ -68,8 +68,8 @@ export default function MissionsScreen() {
 
           {/* All complete bonus */}
           <View style={[styles.bonusCard, allClaimed && styles.bonusCardClaimed]}>
-            <Text style={styles.bonusTitle}>&#x1F381; 全ミッション達成ボーナス</Text>
-            <Text style={styles.bonusReward}>&#x1F48E; 5</Text>
+            <Text style={styles.bonusTitle}>全ミッション達成ボーナス</Text>
+            <Text style={styles.bonusReward}>プレミアムx5</Text>
             {allCompleted && allClaimed && !allMissionBonusClaimed ? (
               <Pressable style={styles.bonusButton} onPress={claimAllMissionBonus}>
                 <Text style={styles.bonusButtonText}>受け取る</Text>

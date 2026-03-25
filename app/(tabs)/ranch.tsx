@@ -298,10 +298,10 @@ export default function RanchScreen() {
       {/* Status bar */}
       <View style={styles.statusBar}>
         <Text style={styles.statusText}>
-          &#x1F7E2; {slimes.length}/{ranch.maxSlimes}
+          スライム: {slimes.length}/{ranch.maxSlimes}
         </Text>
         <Text style={styles.statusText}>
-          &#x1F4B0; {formatNumber(coins)}
+          コイン: {formatNumber(coins)}
         </Text>
       </View>
 
