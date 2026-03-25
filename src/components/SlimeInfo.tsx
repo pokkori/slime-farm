@@ -20,7 +20,12 @@ export const SlimeInfo: React.FC<SlimeInfoProps> = ({ slime, visible, onClose })
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.overlay} onPress={onClose}>
+      <Pressable
+        style={styles.overlay}
+        onPress={onClose}
+        accessibilityRole="button"
+        accessibilityLabel="スライム詳細を閉じる"
+      >
         <View style={styles.card}>
           {/* Slime preview */}
           <View style={[styles.preview, { backgroundColor: master.baseColor }]}>
@@ -50,7 +55,12 @@ export const SlimeInfo: React.FC<SlimeInfoProps> = ({ slime, visible, onClose })
 
           <Text style={styles.description}>{master.description}</Text>
 
-          <Pressable style={styles.closeButton} onPress={onClose}>
+          <Pressable
+            style={styles.closeButton}
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="スライム詳細パネルを閉じる"
+          >
             <Text style={styles.closeText}>閉じる</Text>
           </Pressable>
         </View>

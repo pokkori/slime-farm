@@ -45,7 +45,12 @@ export const MissionCard: React.FC<MissionCardProps> = ({ mission, onClaim }) =>
         </View>
 
         {mission.completed && !mission.claimed && (
-          <Pressable style={styles.claimButton} onPress={onClaim}>
+          <Pressable
+            style={styles.claimButton}
+            onPress={onClaim}
+            accessibilityRole="button"
+            accessibilityLabel={`${text} ミッション報酬を受け取る`}
+          >
             <Text style={styles.claimText}>受け取る</Text>
           </Pressable>
         )}

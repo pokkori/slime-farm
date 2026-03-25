@@ -17,7 +17,13 @@ export const EncyclopediaCard: React.FC<EncyclopediaCardProps> = ({ entry, onPre
   const rarityColor = RARITY_COLORS[master.rarity] || '#999';
 
   return (
-    <Pressable style={styles.card} onPress={discovered ? onPress : undefined}>
+    <Pressable
+      style={styles.card}
+      onPress={discovered ? onPress : undefined}
+      accessibilityRole="button"
+      accessibilityLabel={discovered ? `${master.name}の詳細を見る` : '未発見のスライム'}
+      accessibilityState={{ disabled: !discovered }}
+    >
       <View style={[
         styles.preview,
         {

@@ -98,6 +98,9 @@ export default function ShopScreen() {
             key={cat.key}
             style={[styles.tab, category === cat.key && styles.tabActive]}
             onPress={() => setCategory(cat.key)}
+            accessibilityRole="tab"
+            accessibilityLabel={`${cat.label}カテゴリ`}
+            accessibilityState={{ selected: category === cat.key }}
           >
             <Text style={[styles.tabText, category === cat.key && styles.tabTextActive]}>
               {cat.icon} {cat.label}
@@ -137,6 +140,15 @@ export default function ShopScreen() {
                     unlockSlot(slot.slotId);
                   }
                 }}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  slot.state === 'locked'
+                    ? `区画を${slot.unlockCost}コインで解放する`
+                    : slot.decoration
+                    ? '装飾済みの区画'
+                    : '解放済みの区画'
+                }
+                accessibilityState={{ disabled: slot.state !== 'locked' || coins < slot.unlockCost }}
               >
                 {slot.state === 'locked' ? (
                   <Text style={styles.slotCost}>{'鍵\n'}{slot.unlockCost}</Text>

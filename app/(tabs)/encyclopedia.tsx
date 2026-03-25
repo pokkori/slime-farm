@@ -53,6 +53,9 @@ export default function EncyclopediaScreen() {
         <Pressable
           style={[styles.filterTab, filter === 'all' && styles.filterTabActive]}
           onPress={() => setFilter('all')}
+          accessibilityRole="tab"
+          accessibilityLabel="全てのスライムを表示"
+          accessibilityState={{ selected: filter === 'all' }}
         >
           <View style={styles.filterDotRow}>
             <View style={[styles.filterDot, { backgroundColor: '#888888' }]} />
@@ -64,6 +67,9 @@ export default function EncyclopediaScreen() {
             key={cf}
             style={[styles.filterTab, filter === cf && styles.filterTabActive]}
             onPress={() => setFilter(cf)}
+            accessibilityRole="tab"
+            accessibilityLabel={`${COLOR_LABELS[cf]?.label ?? cf}系スライムを表示`}
+            accessibilityState={{ selected: filter === cf }}
           >
             <View style={styles.filterDotRow}>
               <View style={[styles.filterDot, { backgroundColor: COLOR_LABELS[cf]?.color ?? '#888888' }]} />
@@ -89,7 +95,12 @@ export default function EncyclopediaScreen() {
       {/* Detail modal */}
       {selectedEntry && selectedMaster && (
         <Modal visible={true} transparent animationType="fade" onRequestClose={() => setSelectedEntry(null)}>
-          <Pressable style={styles.modalOverlay} onPress={() => setSelectedEntry(null)}>
+          <Pressable
+            style={styles.modalOverlay}
+            onPress={() => setSelectedEntry(null)}
+            accessibilityRole="button"
+            accessibilityLabel="スライム詳細を閉じる"
+          >
             <View style={styles.modalCard}>
               <View style={[styles.modalPreview, { backgroundColor: selectedMaster.baseColor }]}>
                 <View style={styles.modalEyes}>
@@ -116,7 +127,12 @@ export default function EncyclopediaScreen() {
                 </Text>
               )}
 
-              <Pressable style={styles.modalClose} onPress={() => setSelectedEntry(null)}>
+              <Pressable
+                style={styles.modalClose}
+                onPress={() => setSelectedEntry(null)}
+                accessibilityRole="button"
+                accessibilityLabel={`${selectedMaster.name}の詳細を閉じる`}
+              >
                 <Text style={styles.modalCloseText}>閉じる</Text>
               </Pressable>
             </View>

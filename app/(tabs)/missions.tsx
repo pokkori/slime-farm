@@ -39,6 +39,9 @@ export default function MissionsScreen() {
         <Pressable
           style={[styles.segment, tab === 'daily' && styles.segmentActive]}
           onPress={() => setTab('daily')}
+          accessibilityRole="tab"
+          accessibilityLabel="デイリーミッションタブ"
+          accessibilityState={{ selected: tab === 'daily' }}
         >
           <Text style={[styles.segmentText, tab === 'daily' && styles.segmentTextActive]}>
             デイリー
@@ -47,6 +50,9 @@ export default function MissionsScreen() {
         <Pressable
           style={[styles.segment, tab === 'achievements' && styles.segmentActive]}
           onPress={() => setTab('achievements')}
+          accessibilityRole="tab"
+          accessibilityLabel="実績タブ"
+          accessibilityState={{ selected: tab === 'achievements' }}
         >
           <Text style={[styles.segmentText, tab === 'achievements' && styles.segmentTextActive]}>
             実績
@@ -71,7 +77,12 @@ export default function MissionsScreen() {
             <Text style={styles.bonusTitle}>全ミッション達成ボーナス</Text>
             <Text style={styles.bonusReward}>プレミアムx5</Text>
             {allCompleted && allClaimed && !allMissionBonusClaimed ? (
-              <Pressable style={styles.bonusButton} onPress={claimAllMissionBonus}>
+              <Pressable
+                style={styles.bonusButton}
+                onPress={claimAllMissionBonus}
+                accessibilityRole="button"
+                accessibilityLabel="全ミッション達成ボーナスを受け取る プレミアム5個"
+              >
                 <Text style={styles.bonusButtonText}>受け取る</Text>
               </Pressable>
             ) : allMissionBonusClaimed ? (

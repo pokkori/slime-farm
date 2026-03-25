@@ -80,6 +80,8 @@ export const SlimeBlob: React.FC<SlimeBlobProps> = React.memo(({ slime, onTap, o
       onPress={handleTap}
       onLongPress={handleLongPress}
       style={[styles.container, { width: radius * 2, height: radius * 2 }, animatedStyle]}
+      accessibilityRole="button"
+      accessibilityLabel={`${master.name}スライム タップでコイン獲得 長押しで詳細`}
     >
       {/* Shadow */}
       <View style={[styles.shadow, {

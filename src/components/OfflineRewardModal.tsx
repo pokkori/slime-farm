@@ -28,11 +28,21 @@ export const OfflineRewardModal: React.FC = () => {
             <Text style={styles.coinValue}>{formatNumber(reward.coins)}</Text>
           </View>
 
-          <Pressable style={styles.doubleButton} onPress={() => dismiss(true)}>
+          <Pressable
+            style={styles.doubleButton}
+            onPress={() => dismiss(true)}
+            accessibilityRole="button"
+            accessibilityLabel={`広告を見てコインを2倍にする ${formatNumber(reward.coins * 2)}コイン`}
+          >
             <Text style={styles.doubleText}>&#x1F4E2; 広告を見て2倍 → {formatNumber(reward.coins * 2)}</Text>
           </Pressable>
 
-          <Pressable style={styles.normalButton} onPress={() => dismiss(false)}>
+          <Pressable
+            style={styles.normalButton}
+            onPress={() => dismiss(false)}
+            accessibilityRole="button"
+            accessibilityLabel={`${formatNumber(reward.coins)}コインをそのまま受け取る`}
+          >
             <Text style={styles.normalText}>受け取る</Text>
           </Pressable>
         </View>

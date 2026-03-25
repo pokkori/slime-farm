@@ -38,6 +38,9 @@ export const ShopItemCard: React.FC<ShopItemCardProps> = ({
             style={[styles.buyButton, !canAfford && styles.buyButtonDisabled]}
             onPress={onPurchase}
             disabled={!canAfford}
+            accessibilityRole="button"
+            accessibilityLabel={`${item.name}を購入する ${item.cost}${item.costType === 'coin' ? 'コイン' : 'ジェム'}`}
+            accessibilityState={{ disabled: !canAfford }}
           >
             <Text style={styles.buyText}>購入する</Text>
           </Pressable>
