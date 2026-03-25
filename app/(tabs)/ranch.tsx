@@ -237,8 +237,27 @@ export default function RanchScreen() {
         {/* Ground */}
         <View style={[styles.ground, { backgroundColor: bgColors.ground, top: GROUND_Y - 80 }]}>
           <View style={styles.grassRow}>
-            {['🌿','🌸','🍄','⛲','🌿','🌸','🍄','🌿'].map((emoji, i) => (
-              <Text key={i} style={styles.grassEmoji}>{emoji}</Text>
+            {[
+              { color: '#4CAF50', shape: 'oval' },
+              { color: '#F06292', shape: 'circle' },
+              { color: '#8D6E63', shape: 'round' },
+              { color: '#90A4AE', shape: 'tall' },
+              { color: '#4CAF50', shape: 'oval' },
+              { color: '#F06292', shape: 'circle' },
+              { color: '#8D6E63', shape: 'round' },
+              { color: '#4CAF50', shape: 'oval' },
+            ].map((item, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.grassDeco,
+                  item.shape === 'oval' && { width: 8, height: 16, borderRadius: 4 },
+                  item.shape === 'circle' && { width: 12, height: 12, borderRadius: 6 },
+                  item.shape === 'round' && { width: 10, height: 10, borderRadius: 5 },
+                  item.shape === 'tall' && { width: 6, height: 18, borderRadius: 3 },
+                  { backgroundColor: item.color },
+                ]}
+              />
             ))}
           </View>
         </View>
@@ -336,8 +355,8 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingHorizontal: 10,
   },
-  grassEmoji: {
-    fontSize: 18,
+  grassDeco: {
+    alignSelf: 'flex-end',
   },
   statusBar: {
     flexDirection: 'row',

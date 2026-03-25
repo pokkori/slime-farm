@@ -6,14 +6,14 @@ import { EncyclopediaCard } from '../../src/components/EncyclopediaCard';
 import { RARITY_COLORS, THEME_COLORS } from '../../src/constants/colors';
 import { SlimeColorFamily, EncyclopediaEntry } from '../../src/types/slime';
 
-const COLOR_LABELS: Record<string, { label: string; emoji: string }> = {
-  green: { label: '草原', emoji: '🟢' },
-  blue: { label: '水', emoji: '🔵' },
-  red: { label: '火', emoji: '🔴' },
-  yellow: { label: '雷', emoji: '🟡' },
-  purple: { label: '毒', emoji: '🟣' },
-  pink: { label: '花', emoji: '🩷' },
-  all: { label: '全て', emoji: '🌈' },
+const COLOR_LABELS: Record<string, { label: string; color: string }> = {
+  green: { label: '草原', color: '#4CAF50' },
+  blue: { label: '水', color: '#2196F3' },
+  red: { label: '火', color: '#F44336' },
+  yellow: { label: '雷', color: '#FFC107' },
+  purple: { label: '毒', color: '#9C27B0' },
+  pink: { label: '花', color: '#E91E8C' },
+  all: { label: '全て', color: '#888888' },
 };
 
 export default function EncyclopediaScreen() {
@@ -54,7 +54,10 @@ export default function EncyclopediaScreen() {
           style={[styles.filterTab, filter === 'all' && styles.filterTabActive]}
           onPress={() => setFilter('all')}
         >
-          <Text style={styles.filterText}>🌈全て</Text>
+          <View style={styles.filterDotRow}>
+            <View style={[styles.filterDot, { backgroundColor: '#888888' }]} />
+            <Text style={styles.filterText}>全て</Text>
+          </View>
         </Pressable>
         {COLOR_FAMILIES.map(cf => (
           <Pressable
@@ -62,9 +65,10 @@ export default function EncyclopediaScreen() {
             style={[styles.filterTab, filter === cf && styles.filterTabActive]}
             onPress={() => setFilter(cf)}
           >
-            <Text style={styles.filterText}>
-              {COLOR_LABELS[cf]?.emoji} {COLOR_LABELS[cf]?.label}
-            </Text>
+            <View style={styles.filterDotRow}>
+              <View style={[styles.filterDot, { backgroundColor: COLOR_LABELS[cf]?.color ?? '#888888' }]} />
+              <Text style={styles.filterText}>{COLOR_LABELS[cf]?.label}</Text>
+            </View>
           </Pressable>
         ))}
       </ScrollView>
@@ -137,6 +141,8 @@ const styles = StyleSheet.create({
     backgroundColor: THEME_COLORS.primary,
     borderColor: THEME_COLORS.primary,
   },
+  filterDotRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  filterDot: { width: 10, height: 10, borderRadius: 5 },
   filterText: { fontSize: 12, fontWeight: '600' },
   grid: { flex: 1, marginTop: 8 },
   gridContent: { paddingHorizontal: 8, paddingBottom: 20 },

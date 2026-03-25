@@ -8,10 +8,10 @@ import { THEME_COLORS } from '../../src/constants/colors';
 import { ShopCategory, ShopItem } from '../../src/types/shop';
 
 const CATEGORIES: { key: ShopCategory; label: string; icon: string }[] = [
-  { key: 'decoration', label: '装飾', icon: '🎨' },
-  { key: 'background', label: '背景', icon: '🖼' },
-  { key: 'booster', label: 'ブースター', icon: '⚡' },
-  { key: 'expansion', label: '拡張', icon: '📐' },
+  { key: 'decoration', label: '装飾', icon: '[飾]' },
+  { key: 'background', label: '背景', icon: '[背]' },
+  { key: 'booster', label: 'ブースター', icon: '[速]' },
+  { key: 'expansion', label: '拡張', icon: '[拡]' },
 ];
 
 export default function ShopScreen() {
@@ -139,11 +139,11 @@ export default function ShopScreen() {
                 }}
               >
                 {slot.state === 'locked' ? (
-                  <Text style={styles.slotCost}>🔒{'\n'}{slot.unlockCost}</Text>
+                  <Text style={styles.slotCost}>{'鍵\n'}{slot.unlockCost}</Text>
                 ) : slot.decoration ? (
-                  <Text style={styles.slotDeco}>✨</Text>
+                  <Text style={styles.slotDeco}>*</Text>
                 ) : (
-                  <Text style={styles.slotOpen}>✓</Text>
+                  <Text style={styles.slotOpen}>OK</Text>
                 )}
               </Pressable>
             ))}
