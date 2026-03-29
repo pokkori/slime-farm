@@ -105,6 +105,7 @@ export interface GameState {
   setTutorialDone: () => void;
   updateSettings: (partial: Partial<SettingsData>) => void;
   clearFloatingCoin: (id: string) => void;
+  discoverSlime: (masterId: string) => void;
   resetGame: () => void;
 }
 
@@ -611,6 +612,20 @@ export const useGameStore = create<GameState>()(
         set(state => ({
           floatingCoins: state.floatingCoins.filter(c => c.id !== id),
         }));
+      },
+
+      discoverSlime: (masterId: string) => {
+        set(state => {
+          const enc = [...state.encyclopedia];
+          const idx = enc.findIndex(e => e.masterId === masterId);
+          if (idx >= 0 && !enc[idx].discovered) {
+            enc[idx] = { ...enc[idx], discovered: true, discoveredAt: Date.now(), mergeCount: enc[idx].mergeCount + 1 };
+            get().updateMissionProgress('discover_new', 1);
+          } else if (idx >= 0) {
+            enc[idx] = { ...enc[idx], mergeCount: enc[idx].mergeCount + 1 };
+          }
+          return { encyclopedia: enc };
+        });
       },
 
       resetGame: () => {

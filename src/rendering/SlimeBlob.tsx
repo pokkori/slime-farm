@@ -18,11 +18,15 @@ interface SlimeBlobProps {
   slime: SlimeInstance;
   onTap: (instanceId: string) => void;
   onLongPress?: (instanceId: string) => void;
+  onDragStart?: (instanceId: string) => void;
+  onDragMove?: (x: number, y: number) => void;
+  onDragEnd?: (x: number, y: number) => void;
+  isDragging?: boolean;
 }
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export const SlimeBlob: React.FC<SlimeBlobProps> = React.memo(({ slime, onTap, onLongPress }) => {
+export const SlimeBlob: React.FC<SlimeBlobProps> = React.memo(({ slime, onTap, onLongPress, onDragStart, onDragMove, onDragEnd, isDragging }) => {
   const master = SLIME_MASTER[slime.masterId];
   if (!master) return null;
 
@@ -56,6 +60,36 @@ export const SlimeBlob: React.FC<SlimeBlobProps> = React.memo(({ slime, onTap, o
     if (onLongPress) onLongPress(slime.instanceId);
   };
 
+  // Drag-to-merge: track pan gesture
+  const dragStartRef = useRef<{ startX: number; startY: number } | null>(null);
+  const isDragMode = useRef(false);
+
+  const handleMoveShouldSet = () => true;
+  const handlePanStart = (e: any) => {
+    dragStartRef.current = { startX: e.nativeEvent.pageX, startY: e.nativeEvent.pageY };
+    isDragMode.current = false;
+  };
+  const handlePanMove = (e: any) => {
+    if (!dragStartRef.current) return;
+    const dx = e.nativeEvent.pageX - dragStartRef.current.startX;
+    const dy = e.nativeEvent.pageY - dragStartRef.current.startY;
+    // Activate drag mode after 10px movement
+    if (!isDragMode.current && Math.sqrt(dx * dx + dy * dy) > 10) {
+      isDragMode.current = true;
+      onDragStart?.(slime.instanceId);
+    }
+    if (isDragMode.current) {
+      onDragMove?.(e.nativeEvent.locationX + slime.x - radius, e.nativeEvent.locationY + slime.y - radius);
+    }
+  };
+  const handlePanEnd = (e: any) => {
+    if (isDragMode.current) {
+      onDragEnd?.(e.nativeEvent.pageX, e.nativeEvent.pageY);
+    }
+    isDragMode.current = false;
+    dragStartRef.current = null;
+  };
+
   const animatedStyle = useAnimatedStyle(() => {
     const wobbleScale = interpolate(wobble.value, [0, 1], [0.96, 1.04]);
     const wobbleX = interpolate(wobble.value, [0, 1], [1.02, 0.98]);
@@ -79,9 +113,17 @@ export const SlimeBlob: React.FC<SlimeBlobProps> = React.memo(({ slime, onTap, o
     <AnimatedPressable
       onPress={handleTap}
       onLongPress={handleLongPress}
-      style={[styles.container, { width: radius * 2, height: radius * 2 }, animatedStyle]}
+      onTouchStart={handlePanStart}
+      onTouchMove={handlePanMove}
+      onTouchEnd={handlePanEnd}
+      style={[
+        styles.container,
+        { width: radius * 2, height: radius * 2 },
+        animatedStyle,
+        isDragging && styles.dragging,
+      ]}
       accessibilityRole="button"
-      accessibilityLabel={`${master.name}スライム タップでコイン獲得 長押しで詳細`}
+      accessibilityLabel={`${master.name}スライム タップでコイン獲得 ドラッグで合成 長押しで詳細`}
     >
       {/* Shadow */}
       <View style={[styles.shadow, {
@@ -180,6 +222,10 @@ export const SlimeBlob: React.FC<SlimeBlobProps> = React.memo(({ slime, onTap, o
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
+  },
+  dragging: {
+    opacity: 0.7,
+    zIndex: 100,
   },
   shadow: {
     position: 'absolute',

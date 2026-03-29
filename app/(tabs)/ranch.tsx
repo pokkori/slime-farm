@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
-import { View, StyleSheet, Dimensions, Text, Platform } from 'react-native';
+import { View, StyleSheet, Dimensions, Text, Platform, Pressable, Share, Linking, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGameStore } from '../../src/store/gameStore';
 import { SLIME_MASTER } from '../../src/constants/slimes';
@@ -13,11 +13,17 @@ import { OfflineRewardModal } from '../../src/components/OfflineRewardModal';
 import { canMerge } from '../../src/engine/merge-logic';
 import { SlimeInstance } from '../../src/types/slime';
 import { formatNumber } from '../../src/utils/format';
+import WelcomeBackModal, { checkWelcomeBack } from '../../src/components/WelcomeBackModal';
+import { useRewardedAd } from '../../src/hooks/useRewardedAd';
+import { useJuice, JuiceProvider } from '../../src/components/vfx';
+import { useProceduralAudio } from '../../src/hooks/useProceduralAudio';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const GROUND_Y = SCREEN_HEIGHT - 180;
 const WALL_LEFT = 10;
 const WALL_RIGHT = SCREEN_WIDTH - 10;
+/** ドラッグ合成: スライム同士がこの距離以内でドロップされたら合成判定 */
+const MERGE_DROP_RADIUS = 60;
 
 export default function RanchScreen() {
   const slimes = useGameStore(s => s.slimes);
@@ -33,7 +39,101 @@ export default function RanchScreen() {
   const coins = useGameStore(s => s.coins);
   const gems = useGameStore(s => s.gems);
 
+  // VFX v2.0 Juice + Procedural Audio
+  const juice = useJuice();
+  const audio = useProceduralAudio();
+
   const [selectedSlime, setSelectedSlime] = useState<SlimeInstance | null>(null);
+  const [welcomeVisible, setWelcomeVisible] = useState(false);
+  const [welcomeResult, setWelcomeResult] = useState<{ shouldShow: boolean; hoursAway: number; bonusCoins: number; message: string }>({ shouldShow: false, hoursAway: 0, bonusCoins: 0, message: '' });
+  const { isLoaded: adLoaded, showAd } = useRewardedAd();
+
+  // ドラッグ合成 state
+  const [dragSlimeId, setDragSlimeId] = useState<string | null>(null);
+  const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
+
+  /** ドラッグ開始 */
+  const handleDragStart = useCallback((instanceId: string) => {
+    setDragSlimeId(instanceId);
+  }, []);
+
+  /** ドラッグ移動 */
+  const handleDragMove = useCallback((x: number, y: number) => {
+    setDragPos({ x, y });
+  }, []);
+
+  /** ドラッグ終了: 最寄りの合成可能スライムと合成 */
+  const handleDragEnd = useCallback((dropX: number, dropY: number) => {
+    if (!dragSlimeId) {
+      setDragSlimeId(null);
+      setDragPos(null);
+      return;
+    }
+
+    const currentSlimes = useGameStore.getState().slimes;
+    const draggedSlime = currentSlimes.find(s => s.instanceId === dragSlimeId);
+    if (!draggedSlime) {
+      setDragSlimeId(null);
+      setDragPos(null);
+      return;
+    }
+
+    // Find closest mergeable slime within radius
+    let bestTarget: SlimeInstance | null = null;
+    let bestDist = MERGE_DROP_RADIUS;
+
+    for (const s of currentSlimes) {
+      if (s.instanceId === dragSlimeId) continue;
+      if (!canMerge(draggedSlime, s)) continue;
+
+      const dx = s.x - dropX;
+      const dy = s.y - dropY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestTarget = s;
+      }
+    }
+
+    if (bestTarget) {
+      const store = useGameStore.getState();
+      store.tryMerge(dragSlimeId, bestTarget.instanceId);
+    }
+
+    setDragSlimeId(null);
+    setDragPos(null);
+  }, [dragSlimeId]);
+
+  const handleShare = useCallback(async () => {
+    const msg = `スライム牧場で${slimes.length}匹のスライムを育成中！ #スライム牧場`;
+    try {
+      await Share.share({ message: msg });
+    } catch (_) {}
+  }, [slimes.length]);
+
+  const handleShareX = useCallback(async () => {
+    const msg = encodeURIComponent(`スライム牧場で${slimes.length}匹のスライムを育成中！ #スライム牧場`);
+    const url = `https://twitter.com/intent/tweet?text=${msg}`;
+    await Linking.openURL(url);
+  }, [slimes.length]);
+
+  const handleWatchAd = useCallback(() => {
+    showAd(() => {
+      const store = useGameStore.getState();
+      store.addCoins?.(100) ?? store.tickCoins?.();
+      Alert.alert('ボーナス', '広告視聴ボーナスとしてコインを獲得しました！');
+    });
+  }, [showAd]);
+
+  useEffect(() => {
+    checkWelcomeBack().then((r) => { if (r.shouldShow) { setWelcomeResult(r); setWelcomeVisible(true); } });
+  }, []);
+
+  // BGM start on mount
+  useEffect(() => {
+    audio.startBGM();
+    return () => { audio.stopBGM(500); };
+  }, []);
   const animationRef = useRef<number | null>(null);
   const lastTickRef = useRef(Date.now());
   const coinTickRef = useRef(Date.now());
@@ -185,10 +285,14 @@ export default function RanchScreen() {
             }
           }
 
-          // Try merge
+          // Try merge + VFX/SE
           if (canMerge(a, b)) {
             const store = useGameStore.getState();
             store.tryMerge(a.instanceId, b.instanceId);
+            const midX = (ax + bx) / 2;
+            const midY = (ay + by) / 2;
+            audio.playSE('success');
+            juice.onCorrect(1, 10, { x: midX, y: midY });
             break;
           }
         }
@@ -217,7 +321,12 @@ export default function RanchScreen() {
 
   const handleTap = useCallback((instanceId: string) => {
     tapSlime(instanceId);
-  }, [tapSlime]);
+    audio.playSE('tap');
+    const slime = useGameStore.getState().slimes.find(s => s.instanceId === instanceId);
+    if (slime) {
+      juice.onTap({ x: slime.x, y: slime.y });
+    }
+  }, [tapSlime, audio, juice]);
 
   const handleLongPress = useCallback((instanceId: string) => {
     const slime = useGameStore.getState().slimes.find(s => s.instanceId === instanceId);
@@ -225,6 +334,7 @@ export default function RanchScreen() {
   }, []);
 
   return (
+    <JuiceProvider juice={juice}>
     <SafeAreaView style={[styles.container, { backgroundColor: bgColors.top }]}>
       {/* Header */}
       <View style={styles.header}>
@@ -269,8 +379,46 @@ export default function RanchScreen() {
             slime={slime}
             onTap={handleTap}
             onLongPress={handleLongPress}
+            onDragStart={handleDragStart}
+            onDragMove={handleDragMove}
+            onDragEnd={handleDragEnd}
+            isDragging={dragSlimeId === slime.instanceId}
           />
         ))}
+
+        {/* Drag indicator: show merge-possible highlight */}
+        {dragSlimeId && dragPos && (() => {
+          const draggedSlime = slimes.find(s => s.instanceId === dragSlimeId);
+          if (!draggedSlime) return null;
+          // Highlight merge-possible targets
+          return slimes
+            .filter(s => s.instanceId !== dragSlimeId && canMerge(draggedSlime, s))
+            .map(target => {
+              const dx = target.x - dragPos.x;
+              const dy = target.y - dragPos.y;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+              const isClose = dist < MERGE_DROP_RADIUS;
+              const master = SLIME_MASTER[target.masterId];
+              if (!master) return null;
+              return (
+                <View
+                  key={`hint-${target.instanceId}`}
+                  pointerEvents="none"
+                  style={{
+                    position: 'absolute',
+                    left: target.x - master.baseRadius - 4,
+                    top: target.y - master.baseRadius - 4,
+                    width: (master.baseRadius + 4) * 2,
+                    height: (master.baseRadius + 4) * 2,
+                    borderRadius: master.baseRadius + 4,
+                    borderWidth: 2,
+                    borderColor: isClose ? '#FFD700' : 'rgba(255,215,0,0.3)',
+                    backgroundColor: isClose ? 'rgba(255,215,0,0.15)' : 'transparent',
+                  }}
+                />
+              );
+            });
+        })()}
 
         {/* Floating coins */}
         {floatingCoins.map(coin => (
@@ -305,6 +453,36 @@ export default function RanchScreen() {
         </Text>
       </View>
 
+      {/* Share & Ad buttons */}
+      <View style={styles.actionBar}>
+        <Pressable
+          style={styles.shareButton}
+          onPress={handleShare}
+          accessibilityRole="button"
+          accessibilityLabel="牧場の状況をシェアする"
+        >
+          <Text style={styles.shareButtonText}>シェア</Text>
+        </Pressable>
+        <Pressable
+          style={styles.xButton}
+          onPress={handleShareX}
+          accessibilityRole="button"
+          accessibilityLabel="Xに投稿する"
+        >
+          <Text style={styles.xButtonText}>Xに投稿</Text>
+        </Pressable>
+        {adLoaded && (
+          <Pressable
+            style={styles.adButton}
+            onPress={handleWatchAd}
+            accessibilityRole="button"
+            accessibilityLabel="広告を見てコインを獲得する"
+          >
+            <Text style={styles.adButtonText}>広告でコインGET</Text>
+          </Pressable>
+        )}
+      </View>
+
       {/* Offline reward modal */}
       <OfflineRewardModal />
 
@@ -314,7 +492,13 @@ export default function RanchScreen() {
         visible={!!selectedSlime}
         onClose={() => setSelectedSlime(null)}
       />
+      <WelcomeBackModal
+        visible={welcomeVisible}
+        result={welcomeResult}
+        onClose={() => setWelcomeVisible(false)}
+      />
     </SafeAreaView>
+    </JuiceProvider>
   );
 }
 
@@ -333,7 +517,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: '#F1F5F9',
+    textShadowColor: THEME_COLORS.primary,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
   },
   canvas: {
     flex: 1,
@@ -368,5 +555,53 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 12,
     color: THEME_COLORS.textSecondary,
+  },
+  actionBar: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(0,0,0,0.03)',
+  },
+  shareButton: {
+    backgroundColor: THEME_COLORS.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  shareButtonText: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  xButton: {
+    backgroundColor: '#000',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  xButtonText: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  adButton: {
+    backgroundColor: '#FFB300',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  adButtonText: {
+    color: '#1A1A2E',
+    fontSize: 13,
+    fontWeight: '700',
   },
 });

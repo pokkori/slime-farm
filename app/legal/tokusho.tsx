@@ -20,7 +20,7 @@ export default function TokushoScreen() {
           {[
             ['販売事業者', '個人運営'],
             ['所在地', '請求があれば開示します'],
-            ['メール', 'support@example.com'],
+            ['メール', 'support@slime-farm.app'],
             ['価格', '無料（基本機能）/ 有料アイテムあり'],
             ['返品・解約', 'デジタルコンテンツのため返品不可'],
           ].map(([k, v]) => (

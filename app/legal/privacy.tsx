@@ -26,7 +26,7 @@ export default function PrivacyScreen() {
           ・収集した情報を第三者に販売することはありません。{'\n'}
           ・AdMob（Google社）の広告SDKを使用しています。{'\n\n'}
           【お問い合わせ】{'\n'}
-          support@example.com
+          support@slime-farm.app
         </Text>
       </ScrollView>
     </SafeAreaView>
